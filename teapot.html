@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+            <title>Teapot Phong </title>
+
+            <script id="vertex-shader" type="x-shader/x-vertex">
+
+                precision mediump float;
+                attribute vec3 vertexPosition;
+                attribute vec3 nv;
+
+                attribute vec2 textureCoordinate;
+                varying vec2 ftextureCoordinate;
+
+                uniform mat4 M, M_inversetranspose, P_orth, P_persp;
+                uniform mat4 Mx,My;
+                uniform float orthIsOn;
+
+                varying vec3  n;
+
+                void main() {
+                    gl_PointSize = 1.0;
+
+                    vec4 vertexPosition = vec4(vertexPosition,1.0);
+                    vec4 vertexPositionTransformed =  M * vertexPosition;
+
+                    vec4 nv4 = vec4(nv.x, nv.y, nv.z, 1.0);
+                    vec4 nv4transformed = M_inversetranspose * nv4;
+                    vec3 nvtransformed = normalize(nv4transformed.xyz);
+
+                    n = nvtransformed;
+
+                    ftextureCoordinate = textureCoordinate;
+
+                    if ( orthIsOn > 0.5){
+                      gl_Position =  My * Mx * P_orth * vertexPositionTransformed;
+                    }
+                    else{
+                      gl_Position = My * Mx * P_persp * vertexPositionTransformed;
+                    }
+                }
+            </script>
+
+            <script id="fragment-shader" type="x-shader/x-fragment">
+
+                precision mediump float;
+
+                varying vec3 n;
+                varying vec2 ftextureCoordinate;
+                uniform sampler2D texMap0;
+                uniform bool light;
+                uniform vec4 color;
+
+                void main() {
+
+
+                    vec3 n_renorm = normalize(n);
+                    vec4 c = color;
+
+                    if(light){
+                      float multiplier = abs(n_renorm.z);
+                      gl_FragColor = vec4(multiplier*c.r, multiplier*c.g, multiplier*c.b, 1.0);
+                      if(n.z == 0.0)
+                      gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+                    }
+                    else {
+                      vec4 color0 = texture2D( texMap0, ftextureCoordinate);
+                      c = vec4( color0.r*c.r, color0.g*c.g, color0.b*c.b, 1.0 );
+                      gl_FragColor = c;
+                    }
+                }
+
+            </script>
+            <script type="text/javascript" src="Common/webgl-utils.js"></script>
+            <script type="text/javascript" src="Common/initShaders.js"></script>
+            <script type="text/javascript" src="Common/MV.js"></script>
+            <script type="text/javascript" src="teapot.js"></script>
+            <!--<script type="text/javascript" src="teapot20.js"></script>-->
+            <script type="text/javascript" src="model.js"></script>
+            <link rel="stylesheet" type="text/css" href="mystyle.css">
+    </head>
+
+    <body onload = "initGL()">
+        <canvas id="gl-canvas" width="2048" height="1024" onclick="readCoordinates(event)"></canvas>
+        <div class="button-pos">
+        <button id="Orthographic" class="button button1" onclick="showOrthographic()">Orthographic</button>
+        <button id="Perspective" class="button button1" onclick="showPerspective()">Perspective</button>
+        <button id="rotateX" class="button button1" onclick="rotateAroundX()">Rotate Around X</button>
+        <button id="rotateY" class="button button1" onclick="rotateAroundY()">Rotate Around Y</button>
+        <button id="startstop"  class="button button1" onclick="startstopRotate()">Start/Stop Rotate</button>
+        <button id="startstop"  class="button button1" onclick="TextureToggle()">Texture Toggle</button>
+        </div>
+        <img id="textureid" hidden src="Texture02.jpg" />
+        <div class="rangeslider">
+          <input type="range" min="1" max="100" value="80" class="myslider" id="sliderR">
+          <input type="range" min="1" max="100" value="100" class="myslider" id="sliderG">
+          <input type="range" min="1" max="100" value="100" class="myslider" id="sliderB">
+        </div>
+        <div class="xyz">
+        <a onclick="selectTexture(2)"><img id="t2" hidden src="Texture02.jpg" /><figure id="t2" class="circle"></figure></a>
+        <a onclick="selectTexture(4)"><img id="t4" hidden src="Texture04.jpg" /><figure id="t4" class="circle"></figure></a>
+        <a onclick="selectTexture(5)"><img id="t5" hidden src="Texture05.jpg" /><figure id="t5" class="circle"></figure></a>
+        <a onclick="selectTexture(6)"><img id="t6" hidden src="Texture06.jpg" /><figure id="t6" class="circle"></figure></a>
+        <a onclick="selectTexture(7)"><img id="t7" hidden src="Texture07.jpg" /><figure id="t7" class="circle"></figure></a>
+        <a onclick="selectTexture(8)"><img id="t8" hidden src="Texture08.jpg" /><figure id="t8" class="circle"></figure></a>
+        <a onclick="selectTexture(9)"><img id="t9" hidden src="Texture09.jpg" /><figure id="t9" class="circle"></figure></a>
+        <a onclick="selectTexture(10)"><img id="t10" hidden src="Texture10.jpg" /><figure id="t10" class="circle"></figure></a>
+        </div>
+    </body>
+</html>
